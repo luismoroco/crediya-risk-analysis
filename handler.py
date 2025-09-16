@@ -1,7 +1,13 @@
 import json
+import logging
 
 from usecase import RiskAnalysisUseCase
 from usecase.dto import AutomaticEvaluationLoanRequestStartedDTO
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+)
 
 
 def lambda_handler(event=None, context=None):
@@ -10,7 +16,7 @@ def lambda_handler(event=None, context=None):
             "basicWaging": 5000,
             "application": {
                 "applicationId": 1,
-                "amount": 10000,
+                "amount": 100000,
                 "deadline": 12,
                 "email": "usuario@example.com",
                 "applicationStatusId": 1,
@@ -25,7 +31,7 @@ def lambda_handler(event=None, context=None):
                 "automaticValidation": True,
             },
             "minimalLoanDTOS": [
-                {"loanId": 101, "amount": 2000, "deadline": 6, "interestRate": "0.01"},
+                {"loanId": 101, "amount": 2000, "deadline": 6, "interestRate": 0.01},
                 {
                     "loanId": 102,
                     "amount": 3000,
