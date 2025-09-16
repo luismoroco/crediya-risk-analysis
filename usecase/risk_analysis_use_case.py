@@ -1,8 +1,11 @@
 import logging
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import ClassVar
 
 from domain import ApplicationStatus
+from domain.gateway import EventPublisher
+from domain.gateway.dto import LoanRequestEvaluatedEvent
+from infrastructure.sqs_event_publisher import SQSEventPublisher
 from usecase.dto import AutomaticEvaluationLoanRequestStartedDTO
 
 logger = logging.getLogger(__name__)
@@ -13,12 +16,14 @@ class RiskAnalysisUseCase:
     __WAGING_PERCENTAGE: ClassVar[Decimal] = Decimal("0.35")
     __MAXIMUM_SALARIES: ClassVar[int] = 5
 
+    event_publisher: EventPublisher
+
     def __init__(self):
-        pass
+        self.event_publisher = SQSEventPublisher()
 
     def evaluate_loan_request(
         self, dto: AutomaticEvaluationLoanRequestStartedDTO
-    ) -> ApplicationStatus:
+    ) -> None:
         logger.info(
             "Starting loan evaluation "
             "[basicWaging=%s][applicationAmount=%s][deadline=%s]",
@@ -62,18 +67,26 @@ class RiskAnalysisUseCase:
         debt_capacity = max_debt_capacity - current_debt_amount
         logger.info("Available debt capacity [debtCapacity=%s]", debt_capacity)
 
+        application_status: ApplicationStatus
         if new_installment <= debt_capacity:
             if dto.application.amount > dto.basicWaging * self.__MAXIMUM_SALARIES:
                 logger.info(
                     "Loan requires manual review [reason=amountExceedsMaximumSalaries]"
                 )
-                return ApplicationStatus.MANUAL_REVIEW
+                application_status = ApplicationStatus.MANUAL_REVIEW
+            else:
+                logger.info("Loan approved [status=APPROVED]")
+                application_status = ApplicationStatus.APPROVED
+        else:
+            logger.info(
+                "Loan rejected [status=REJECTED][reason=insufficientDebtCapacity]"
+            )
+            application_status = ApplicationStatus.REJECTED
 
-            logger.info("Loan approved [status=APPROVED]")
-            return ApplicationStatus.APPROVED
-
-        logger.info("Loan rejected [status=REJECTED][reason=insufficientDebtCapacity]")
-        return ApplicationStatus.REJECTED
+        event = LoanRequestEvaluatedEvent()
+        event.applicationId = dto.application.applicationId
+        event.applicationStatus = application_status
+        self.event_publisher.notify_loan_request_evaluated(event=event)
 
     @staticmethod
     def _get_monthly_installment(p: Decimal, i: Decimal, n: int) -> Decimal:
