@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import List
 
+from helper import BaseModel
+
 
 @dataclass
-class Application:
+class Application(BaseModel):
     applicationId: int
     amount: int
     deadline: int
@@ -14,7 +16,7 @@ class Application:
 
 
 @dataclass
-class LoanType:
+class LoanType(BaseModel):
     loanTypeId: int
     name: str
     maximumAmount: int
@@ -24,7 +26,7 @@ class LoanType:
 
 
 @dataclass
-class MinimalLoanDTO:
+class MinimalLoanDTO(BaseModel):
     loanId: int
     amount: int
     deadline: int
@@ -32,7 +34,7 @@ class MinimalLoanDTO:
 
 
 @dataclass
-class AutomaticEvaluationLoanRequestStartedDTO:
+class AutomaticEvaluationLoanRequestStartedDTO(BaseModel):
     basicWaging: int
     application: Application
     loanType: LoanType

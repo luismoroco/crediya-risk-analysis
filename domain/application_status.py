@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class ApplicationStatus(Enum):
-    REJECTED = "REJECTED"
-    PENDING = "PENDING"
-    MANUAL_REVIEW = "MANUAL_REVIEW"
-    APPROVED = "APPROVED"
+    REJECTED = 1
+    PENDING = 2
+    MANUAL_REVIEW = 3
+    APPROVED = 4

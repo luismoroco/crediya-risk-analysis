@@ -1,9 +1,7 @@
 import json
-from decimal import Decimal
 
 from usecase import RiskAnalysisUseCase
-from usecase.dto import (Application, AutomaticEvaluationLoanRequestStartedDTO,
-                         LoanType, MinimalLoanDTO)
+from usecase.dto import AutomaticEvaluationLoanRequestStartedDTO
 
 
 def lambda_handler(event=None, context=None):
@@ -56,27 +54,12 @@ def lambda_handler(event=None, context=None):
             print("Body is not valid JSON:", body_str)
             continue
 
-        application = Application(**body["application"])
-        loan_type_dict = body["loanType"]
-        loan_type_dict["interestRate"] = Decimal(loan_type_dict["interestRate"])
-        loan_type = LoanType(**loan_type_dict)
-
-        minimal_loans = []
-        for loan in body["minimalLoanDTOS"]:
-            loan["interestRate"] = Decimal(loan["interestRate"])
-            minimal_loans.append(MinimalLoanDTO(**loan))
-
-        dto = AutomaticEvaluationLoanRequestStartedDTO(
-            basicWaging=body["basicWaging"],
-            application=application,
-            loanType=loan_type,
-            minimalLoanDTOS=minimal_loans,
+        use_case = RiskAnalysisUseCase()
+        result = use_case.evaluate_loan_request(
+            AutomaticEvaluationLoanRequestStartedDTO.from_dict(body)
         )
 
-        use_case = RiskAnalysisUseCase()
-        result = use_case.evaluate_loan_request(dto)
-
-        print("Evaluación automática:", result)
+        print("Evaluación automática:", result.name)
 
     return {"statusCode": 200, "body": json.dumps("Event processed")}
 
