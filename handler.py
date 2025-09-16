@@ -34,7 +34,3 @@ def lambda_handler(event, context):
         )
 
     return {"statusCode": 200, "body": json.dumps("Event processed")}
-
-
-if __name__ == "__main__":
-    lambda_handler()
