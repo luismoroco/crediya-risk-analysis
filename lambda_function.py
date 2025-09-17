@@ -4,10 +4,15 @@ import logging
 from usecase import RiskAnalysisUseCase
 from usecase.dto import AutomaticEvaluationLoanRequestStartedDTO
 
+"""
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
 )
+"""
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
